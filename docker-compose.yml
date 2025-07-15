@@ -4,7 +4,7 @@ services:
     image: postgres:13
     container_name: postgres_db
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '5436:5432'
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,12 +13,17 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - book_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:latest
     container_name: redis_cache
     ports:
-      - '${REDIS_PORT:-6379}:6379'
+      - '6380:6379'
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -34,9 +39,45 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - book_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: book_api
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-'your-secret-key'}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-'14d'}
+    volumes:
+      - ./logs:/usr/src/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - book_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api-doc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

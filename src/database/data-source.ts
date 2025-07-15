@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { Book } from '../book/entities/book.entity';
 import { User } from '../user/entities/user.entity';
+import { ReadingInterval } from '../user/entities/reading-interval.entity';
 
 const options: DataSourceOptions = {
   type: 'postgres',
@@ -10,7 +11,7 @@ const options: DataSourceOptions = {
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
-  entities: [Book, User],
+  entities: [Book, User, ReadingInterval],
   synchronize: true, // Be careful with this in production
 };
 
