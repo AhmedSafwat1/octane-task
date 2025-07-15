@@ -14,6 +14,17 @@ services:
     networks:
       - book_network
 
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - book_network
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -29,6 +40,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   book_network:
