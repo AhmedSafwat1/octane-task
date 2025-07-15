@@ -8,12 +8,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { CommonModule } from './common/common.module';
 import { BullModule } from '@nestjs/bull';
+import redisConfig from './config/redis.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [databaseConfig, redisConfig],
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
