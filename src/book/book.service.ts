@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { SubmitIntervalDto } from './dto/submit-interval.dto';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { RecommendedBookDto } from './dto/recommended-book.dto';
 import { plainToInstance } from 'class-transformer';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { StoreBookDto } from './dto/store-book.dto ';
 
 
 @Injectable()
@@ -34,6 +35,7 @@ export class BookService {
         await this.readingQueue.add('submit-reading', submitIntervalDto);
        
     }
+
     async getMostRecommendedFiveBooks(): Promise<RecommendedBookDto[]> {
         const books = await this.bookRepository.find({
             select: ['id', 'name', 'numOfPages', 'uniqueReadPages'],
@@ -43,5 +45,20 @@ export class BookService {
             take: 5
         });
         return plainToInstance(RecommendedBookDto, books, { excludeExtraneousValues: true });
+    }
+
+    async storeBook(storeBookDto: StoreBookDto) {
+        const book = this.bookRepository.create(storeBookDto);
+        await this.bookRepository.save(book);
+        return { status_code: 'success' };
+    }
+
+    async updateBook(bookId: number, updateBookDto: StoreBookDto) {
+        const book = await this.bookRepository.findOne({ where: { id: bookId } });
+        if (!book) {
+            throw new NotFoundException('Book not found');
+        }
+        await this.bookRepository.update(bookId, updateBookDto);
+        return { status_code: 'success' };
     }
 }

@@ -8,13 +8,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { CommonModule } from './common/common.module';
 import { BullModule } from '@nestjs/bull';
+import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
+import appConfig from './config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, redisConfig],
+      load: [databaseConfig, jwtConfig, redisConfig, appConfig],
+      cache: true,
+      expandVariables: true,
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -47,6 +51,9 @@ import redisConfig from './config/redis.config';
     CommonModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+  ],
 })
 export class AppModule {}
+  
