@@ -4,25 +4,49 @@ A NestJS application for managing book reading progress with PostgreSQL database
 
 ## Implementation Coverage
 
-### 1. Authentication & Authorization
+### Table of Contents
+1. [Book Reading Progress Tracking](#1-book-reading-progress-tracking)
+2. [Authentication & Authorization](#2-authentication--authorization)
+3. [Exception Handling & Logging](#3-exception-handling--logging)
+4. [Background Processing](#4-background-processing)
+5. [Test Coverage](#5-test-coverage)
+6. [Database Schema & Relations](#6-database-schema--relations)
+
+### 1. Book Reading Progress Tracking
+
+- **Reading Interval Submission**
+  - Users can submit reading intervals with start and end pages for any book
+  - Multiple intervals allowed per user per book
+  - Background processing ensures accurate page counting
+  - Validates page ranges against book's total pages
+  - Handles concurrent submissions efficiently
+
+- **Top Books Recommendation**
+  - Shows top 5 books based on unique pages read
+  - Aggregates reading data across all users
+  - Real-time sorting by most to least read pages
+  - Efficient caching for performance optimization
+  - Updates automatically as new intervals are submitted
+
+### 2. Authentication & Authorization
+
 - **JWT-based Authentication**
-  - Access token required for protected endpoints
-  - Token validation and expiration handling
-  - Secure password hashing with bcrypt
+  - Secure login endpoint that returns JWT token upon successful authentication
+  - Token includes user information and roles for authorization
+  - Token expiration and refresh mechanism implemented
 
-- **Role-Based Authorization**
-  - User roles: `admin`, `user`
-  - Role-based route protection using Guards
-  - Custom decorators for role checking
-  ```typescript
-  @Roles('admin')
-  @Post('books')
-  createBook(@Body() createBookDto: CreateBookDto) {
-    // Only admin can create books
-  }
-  ```
+- **JWT Strategy & Guards**
+  - Passport JWT Strategy for validating tokens and extracting user information
+  - Custom guards implementation for role-based access control
+  - Automatic token validation on protected routes
 
-### 2. Exception Handling & Logging
+- **Protected Routes**
+  - Routes are protected by default requiring valid JWT token
+  - Role-based access control using guards for endpoint authorization
+  - Support for public routes that bypass authentication
+  - Admin-only routes for sensitive operations
+
+### 3. Exception Handling & Logging
 - **Global Exception Filter**
   - Standardized error responses
   - HTTP exception handling
@@ -46,16 +70,40 @@ A NestJS application for managing book reading progress with PostgreSQL database
   })
   ```
 
-### 3. Background Processing
+### 4. Background Processing
 - **Bull Queue Implementation**
   ```typescript
-  @Process('calculate-unique-pages')
-  async calculateUniquePages(job: Job<{ bookId: number }>) {
-    // Background processing of unique pages
+  @Processor('reading-interval')
+  export class ReadingIntervalProcessor {
+    @Process('submit-reading')
+    async handleSubmitReading(job: Job<SubmitIntervalDto>) {
+      // Background processing of reading intervals
+      // Updates unique pages count in a transaction
+    }
   }
   ```
 
-### 4. Database Schema & Relations
+### 5. Test Coverage
+
+The application includes comprehensive unit tests for core functionality:
+
+#### BookService Tests
+```bash
+# Run all tests
+docker-compose exec api npm run
+# Run tests with coverage
+docker-compose exec api npm run
+# Run BookService tests specifically
+docker-compose exec api npm run test src/book/book.service.spec.ts
+```
+
+Coverage includes:
+- `submitInterval`: Submitting reading intervals and queueing background jobs
+- `getMostRecommendedFiveBooks`: Retrieving top 5 books by unique read pages
+- `storeBook`: Creating new books with validation
+- `updateBook`: Updating existing books with error handling
+
+### 6. Database Schema & Relations
 
 #### Entity Relationships
 ```mermaid

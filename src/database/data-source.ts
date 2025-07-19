@@ -15,4 +15,4 @@ const options: DataSourceOptions = {
   synchronize: true, // Be careful with this in production
 };
 
-export const AppDataSource = new DataSource(options); 
+export const AppDataSource = new DataSource(options);

@@ -5,4 +5,4 @@ import { ExistsValidator } from './validators/exists.validator';
   providers: [ExistsValidator],
   exports: [ExistsValidator],
 })
-export class CommonModule {} 
+export class CommonModule {}

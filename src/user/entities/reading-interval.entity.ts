@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Book } from '../../book/entities/book.entity';
 
 @Entity()
@@ -15,7 +21,7 @@ export class ReadingInterval {
   @Column()
   end_page: number;
 
-  @ManyToOne(() => Book, book => book.intervals, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Book, (book) => book.intervals, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'book_id' })
   book: Book;
 

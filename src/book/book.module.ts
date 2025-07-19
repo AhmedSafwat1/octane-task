@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookController } from './book.controller';
 import { BookService } from './book.service';
@@ -20,8 +20,8 @@ import { ReadingIntervalProcessor } from './processor/reading-interval.processor
   controllers: [BookController],
   providers: [
     BookService,
-    IsInBookPageRangeValidator,   
-    ReadingIntervalProcessor
+    IsInBookPageRangeValidator,
+    ReadingIntervalProcessor,
   ],
   exports: [BookService, IsInBookPageRangeValidator],
 })

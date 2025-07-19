@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Book } from './book.entity';
 
@@ -21,7 +28,11 @@ export class UserBookPages {
   @JoinColumn({ name: 'book_id', referencedColumnName: 'id' })
   book: Book;
 
-  @Column({ type: 'timestamp', name: 'created_at', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamp',
+    name: 'created_at',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   @Index('idx_created_at')
   createdAt: Date;
-} 
+}

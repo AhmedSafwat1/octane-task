@@ -21,19 +21,20 @@ export class ReadingIntervalProcessor {
 
     const pagesValuesString = pagesValues.join(',');
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.query(
-        `SELECT id FROM books WHERE id = $1 FOR UPDATE`,
-        [book_id],
-      );
+    await this.dataSource
+      .transaction(async (manager) => {
+        await manager.query(`SELECT id FROM books WHERE id = $1 FOR UPDATE`, [
+          book_id,
+        ]);
 
-      await manager.query(`
+        await manager.query(`
         INSERT INTO user_book_pages (user_id, book_id, page_number)
         VALUES ${pagesValuesString}
         ON CONFLICT DO NOTHING
       `);
 
-      await manager.query(`
+        await manager.query(
+          `
         UPDATE books
         SET unique_read_pages = (
           SELECT COUNT(DISTINCT page_number)
@@ -41,12 +42,18 @@ export class ReadingIntervalProcessor {
           WHERE book_id = $1
         )
         WHERE id = $1
-      `, [book_id]);
-    }).then(() => {
-      this.logger.log(`Reading interval submitted for book ${book_id}`);
-    }).catch((error) => {
-      this.logger.error(`Error submitting reading interval for book ${book_id}: ${error}`);
-      throw error;
-    });
+      `,
+          [book_id],
+        );
+      })
+      .then(() => {
+        this.logger.log(`Reading interval submitted for book ${book_id}`);
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Error submitting reading interval for book ${book_id}: ${error}`,
+        );
+        throw error;
+      });
   }
 }

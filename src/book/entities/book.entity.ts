@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column , OneToMany, Index} from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { ReadingInterval } from '../../user/entities/reading-interval.entity';
 
 @Entity('books')
@@ -15,16 +21,29 @@ export class Book {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 
-  @OneToMany(() => ReadingInterval, interval => interval.book)
+  @OneToMany(() => ReadingInterval, (interval) => interval.book)
   intervals: ReadingInterval[];
 
-  @Column({ type: 'integer', unsigned: true, name: 'unique_read_pages', default: 0 })
+  @Column({
+    type: 'integer',
+    unsigned: true,
+    name: 'unique_read_pages',
+    default: 0,
+  })
   @Index('idx_unique_read_pages')
   uniqueReadPages: number;
 
-  @Column({ type: 'timestamp', nullable: true, name: 'last_update_unique_read_pages' })
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    name: 'last_update_unique_read_pages',
+  })
   lastUpdateUniqueReadPages: Date;
-} 
+}

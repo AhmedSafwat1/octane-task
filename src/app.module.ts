@@ -11,6 +11,7 @@ import { BullModule } from '@nestjs/bull';
 import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
 import appConfig from './config/app.config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,10 +25,10 @@ import appConfig from './config/app.config';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('redis.host'),
-          port: configService.get('redis.port'),
-          password: configService.get('redis.password'),
-          database: configService.get('redis.database'),
+          host: configService.get<string>('redis.host'),
+          port: configService.get<number>('redis.port'),
+          password: configService.get<string>('redis.password'),
+          database: configService.get<number>('redis.database'),
         },
       }),
       inject: [ConfigService],
@@ -49,11 +50,9 @@ import appConfig from './config/app.config';
     BookModule,
     UserModule,
     CommonModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
-  

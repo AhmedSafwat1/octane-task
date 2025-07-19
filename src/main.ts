@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
@@ -8,7 +8,6 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { WinstonModule } from 'nest-winston';
 import { winstonLoggerConfig } from './common/logger/winston.logger';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 async function bootstrap() {
   try {
@@ -27,13 +26,15 @@ async function bootstrap() {
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     // Global validation pipe
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true, // Automatically transform primitive types
-      },
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        transformOptions: {
+          enableImplicitConversion: true, // Automatically transform primitive types
+        },
+      }),
+    );
 
     // Swagger configuration
     const config = new DocumentBuilder()
@@ -51,7 +52,7 @@ async function bootstrap() {
         'access-token',
       )
       .build();
-    
+
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api-doc', app, document);
 
@@ -62,8 +63,8 @@ async function bootstrap() {
     app.useGlobalInterceptors(new LoggingInterceptor());
 
     // Start the server
-    const port = configService.get('app.port');
-    await app.listen(port);
+    const port = configService.get<number>('app.port');
+    await app.listen(port ?? 3000);
 
     logger.log(`Application is running on: http://localhost:${port}`);
   } catch (error) {

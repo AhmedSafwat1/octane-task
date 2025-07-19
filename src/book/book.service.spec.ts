@@ -3,18 +3,12 @@ import { BookService } from './book.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Book } from './entities/book.entity';
 import { ReadingInterval } from './entities/reading-interval.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { getQueueToken } from '@nestjs/bull';
-import { Queue } from 'bull';
 import { NotFoundException } from '@nestjs/common';
-import { RecommendedBookDto } from './dto/recommended-book.dto';
 
 describe('BookService', () => {
   let service: BookService;
-  let bookRepository: Repository<Book>;
-  let readingIntervalRepository: Repository<ReadingInterval>;
-  let dataSource: DataSource;
-  let readingQueue: Queue;
 
   const mockBookRepository = {
     create: jest.fn(),
@@ -61,12 +55,6 @@ describe('BookService', () => {
     }).compile();
 
     service = module.get<BookService>(BookService);
-    bookRepository = module.get<Repository<Book>>(getRepositoryToken(Book));
-    readingIntervalRepository = module.get<Repository<ReadingInterval>>(
-      getRepositoryToken(ReadingInterval),
-    );
-    dataSource = module.get<DataSource>(DataSource);
-    readingQueue = module.get<Queue>(getQueueToken('reading-interval'));
   });
 
   afterEach(() => {
@@ -106,7 +94,9 @@ describe('BookService', () => {
     });
 
     it('should throw error if saving reading interval fails', async () => {
-      mockReadingIntervalRepository.save.mockRejectedValue(new Error('Save failed'));
+      mockReadingIntervalRepository.save.mockRejectedValue(
+        new Error('Save failed'),
+      );
 
       await expect(service.submitInterval(submitIntervalDto)).rejects.toThrow(
         'Save failed',
@@ -164,7 +154,9 @@ describe('BookService', () => {
     it('should throw error if saving book fails', async () => {
       mockBookRepository.save.mockRejectedValue(new Error('Save failed'));
 
-      await expect(service.storeBook(storeBookDto)).rejects.toThrow('Save failed');
+      await expect(service.storeBook(storeBookDto)).rejects.toThrow(
+        'Save failed',
+      );
     });
   });
 
@@ -185,7 +177,10 @@ describe('BookService', () => {
       expect(mockBookRepository.findOne).toHaveBeenCalledWith({
         where: { id: bookId },
       });
-      expect(mockBookRepository.update).toHaveBeenCalledWith(bookId, updateBookDto);
+      expect(mockBookRepository.update).toHaveBeenCalledWith(
+        bookId,
+        updateBookDto,
+      );
       expect(result).toEqual({ status_code: 'success' });
     });
 

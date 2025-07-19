@@ -1,5 +1,4 @@
-import { IsString, IsInt, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsInt, Min } from 'class-validator';
 import { Exists } from '../../common/validators/exists.validator';
 import { Book } from '../entities/book.entity';
 import { User } from '../../user/entities/user.entity';
@@ -9,7 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class SubmitIntervalDto {
   @ApiProperty({
     description: 'The ID of the user submitting the reading interval',
-    example: 1
+    example: 1,
   })
   @IsInt()
   @Exists(User, 'id')
@@ -17,7 +16,7 @@ export class SubmitIntervalDto {
 
   @ApiProperty({
     description: 'The ID of the book being read',
-    example: 1
+    example: 1,
   })
   @IsInt()
   @Exists(Book, 'id')
@@ -26,16 +25,16 @@ export class SubmitIntervalDto {
   @ApiProperty({
     description: 'The starting page number of the reading interval',
     minimum: 1,
-    example: 1
+    example: 1,
   })
   @IsInt()
   @Min(1)
-  @Transform(({ value }) => parseInt(value))
   start_page: number;
 
   @ApiProperty({
-    description: 'The ending page number of the reading interval (must be greater than or equal to start_page and within book page range)',
-    example: 10
+    description:
+      'The ending page number of the reading interval (must be greater than or equal to start_page and within book page range)',
+    example: 10,
   })
   @IsInt()
   @IsInBookPageRange()

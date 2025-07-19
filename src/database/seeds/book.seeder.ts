@@ -40,4 +40,4 @@ export const seedBooks = async (dataSource: DataSource) => {
       console.log(`Book already exists: ${bookData.name}`);
     }
   }
-}; 
+};

@@ -8,17 +8,24 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { IncomingHttpHeaders } from 'http';
 
 interface ErrorResponse {
   success: boolean;
   statusCode: number;
   path: string;
   timestamp: string;
-  message: any;
+  message: unknown;
   debug?: {
     stack?: string;
     exception?: string;
-    context?: any;
+    context?: {
+      body: unknown;
+      query: unknown;
+      params: unknown;
+      user: unknown;
+      headers: Partial<IncomingHttpHeaders>;
+    };
   };
 }
 
@@ -46,7 +53,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     this.logger.error(
       `[${request.method}] ${request.url}`,
-      exception instanceof Error ? exception.stack : undefined
+      exception instanceof Error ? exception.stack : undefined,
     );
 
     const errorResponse: ErrorResponse = {
@@ -61,22 +68,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (this.isDebugMode) {
       errorResponse.debug = {
         stack: exception instanceof Error ? exception.stack : undefined,
-        exception: exception instanceof Error ? exception.name : typeof exception,
+        exception:
+          exception instanceof Error ? exception.name : typeof exception,
         context: {
           body: request.body,
           query: request.query,
           params: request.params,
           user: request.user,
-          headers: this.sanitizeHeaders(request.headers)
-        }
+          headers: this.sanitizeHeaders(request.headers),
+        },
       };
     }
 
     response.status(status).json(errorResponse);
   }
 
-  private sanitizeHeaders(headers: any): any {
-    const sanitized = { ...headers };
+  private sanitizeHeaders(
+    headers: IncomingHttpHeaders,
+  ): Partial<IncomingHttpHeaders> {
+    const sanitized: Partial<IncomingHttpHeaders> = { ...headers };
     // Remove sensitive information
     delete sanitized.authorization;
     delete sanitized.cookie;

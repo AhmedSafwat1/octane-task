@@ -32,4 +32,4 @@ export const seedUsers = async (dataSource: DataSource) => {
       console.log(`User already exists: ${userData.email}`);
     }
   }
-}; 
+};

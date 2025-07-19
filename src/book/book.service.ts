@@ -10,55 +10,56 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { StoreBookDto } from './dto/store-book.dto ';
 
-
 @Injectable()
 export class BookService {
-    constructor(
-        @InjectRepository(Book)
-        private bookRepository: Repository<Book>,
-        @InjectRepository(ReadingInterval)
-        private readingIntervalRepository: Repository<ReadingInterval> ,
-        @InjectDataSource()
-        private dataSource: DataSource ,
-        @InjectQueue('reading-interval')
-        private readonly readingQueue: Queue,
-    ) {}
+  constructor(
+    @InjectRepository(Book)
+    private bookRepository: Repository<Book>,
+    @InjectRepository(ReadingInterval)
+    private readingIntervalRepository: Repository<ReadingInterval>,
+    @InjectDataSource()
+    private dataSource: DataSource,
+    @InjectQueue('reading-interval')
+    private readonly readingQueue: Queue,
+  ) {}
 
-    async submitInterval(submitIntervalDto: SubmitIntervalDto) {
-        // Create and save the reading interval
-        const readingInterval = this.readingIntervalRepository.create(submitIntervalDto);
-        await this.readingIntervalRepository.save(readingInterval);
+  async submitInterval(submitIntervalDto: SubmitIntervalDto) {
+    // Create and save the reading interval
+    const readingInterval =
+      this.readingIntervalRepository.create(submitIntervalDto);
+    await this.readingIntervalRepository.save(readingInterval);
 
-        // I follow the approach to enhance the performance for query when get Most Recommended Five Books.
-        // i expected api most Most Recommended Five Books will be called frequently so i need to enhance the performance.
-        // i use bullmq to handle the job to update unique_read_pages column in the books table.
-        await this.readingQueue.add('submit-reading', submitIntervalDto);
-       
+    // I follow the approach to enhance the performance for query when get Most Recommended Five Books.
+    // i expected api most Most Recommended Five Books will be called frequently so i need to enhance the performance.
+    // i use bullmq to handle the job to update unique_read_pages column in the books table.
+    await this.readingQueue.add('submit-reading', submitIntervalDto);
+  }
+
+  async getMostRecommendedFiveBooks(): Promise<RecommendedBookDto[]> {
+    const books = await this.bookRepository.find({
+      select: ['id', 'name', 'numOfPages', 'uniqueReadPages'],
+      order: {
+        uniqueReadPages: 'DESC',
+      },
+      take: 5,
+    });
+    return plainToInstance(RecommendedBookDto, books, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async storeBook(storeBookDto: StoreBookDto) {
+    const book = this.bookRepository.create(storeBookDto);
+    await this.bookRepository.save(book);
+    return { status_code: 'success' };
+  }
+
+  async updateBook(bookId: number, updateBookDto: StoreBookDto) {
+    const book = await this.bookRepository.findOne({ where: { id: bookId } });
+    if (!book) {
+      throw new NotFoundException('Book not found');
     }
-
-    async getMostRecommendedFiveBooks(): Promise<RecommendedBookDto[]> {
-        const books = await this.bookRepository.find({
-            select: ['id', 'name', 'numOfPages', 'uniqueReadPages'],
-            order: {
-                uniqueReadPages: 'DESC'
-            },
-            take: 5
-        });
-        return plainToInstance(RecommendedBookDto, books, { excludeExtraneousValues: true });
-    }
-
-    async storeBook(storeBookDto: StoreBookDto) {
-        const book = this.bookRepository.create(storeBookDto);
-        await this.bookRepository.save(book);
-        return { status_code: 'success' };
-    }
-
-    async updateBook(bookId: number, updateBookDto: StoreBookDto) {
-        const book = await this.bookRepository.findOne({ where: { id: bookId } });
-        if (!book) {
-            throw new NotFoundException('Book not found');
-        }
-        await this.bookRepository.update(bookId, updateBookDto);
-        return { status_code: 'success' };
-    }
+    await this.bookRepository.update(bookId, updateBookDto);
+    return { status_code: 'success' };
+  }
 }
